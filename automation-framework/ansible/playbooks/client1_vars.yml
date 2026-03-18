@@ -1,0 +1,3 @@
+domain: "client1.example.com"
+app_image: "client1/app:latest"
+db_root_password: "client1securepassword"

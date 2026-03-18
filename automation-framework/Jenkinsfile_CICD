@@ -1,0 +1,65 @@
+pipeline {
+  agent any
+  parameters {
+    string(name: 'CLIENT_NAME', defaultValue: 'client1', description: 'Client Name')
+    string(name: 'AWS_ACCOUNT_ID', defaultValue: '', description: 'AWS Account ID')
+    password(name: 'AWS_SECRET', defaultValue: '', description: 'AWS Secret')
+  }
+  environment {
+    TF_VAR_client_name = "${params.CLIENT_NAME}"
+    AWS_ACCESS_KEY_ID = credentials('aws-access-key-id')
+    AWS_SECRET_ACCESS_KEY = credentials('aws-secret-access-key')
+  }
+  stages {
+    stage('Terraform Init & Plan') {
+      steps {
+        dir('automation-framework/terraform') {
+          sh 'terraform init'
+          sh "terraform plan -var-file=clients/${params.CLIENT_NAME}.tfvars"
+        }
+      }
+    }
+    stage('Terraform Apply') {
+      steps {
+        dir('automation-framework/terraform') {
+          sh "terraform apply -auto-approve -var-file=clients/${params.CLIENT_NAME}.tfvars"
+          sh '''
+            FRONTEND_IP=$(terraform output -raw frontend_public_ip)
+            BACKEND_IP=$(terraform output -raw backend_private_ip)
+
+            cat > ../ansible/inventory.ini <<EOF
+            [web]
+            ${FRONTEND_IP}
+
+            [app]
+            ${BACKEND_IP}
+
+            [db]
+            ${BACKEND_IP}
+            EOF
+          '''
+        }
+      }
+    }
+    stage('Ansible Configuration') {
+      steps {
+        dir('automation-framework/ansible') {
+          // Use an SSH key stored in Jenkins Credentials (type: "SSH Username with private key")
+          // - Create a Jenkins credential with ID: "ansible-ssh-key"
+          // - Ensure the target OS user (e.g. ec2-user) matches the remote host
+          sshagent (credentials: ['ansible-ssh-key']) {
+            sh "ANSIBLE_HOST_KEY_CHECKING=False ansible-playbook -i inventory.ini playbooks/site.yml -e @playbooks/${params.CLIENT_NAME}_vars.yml"
+          }
+        }
+      }
+    }
+  }
+  post {
+    failure {
+      echo 'Deployment failed. Please check logs.'
+    }
+    success {
+      echo 'Deployment succeeded!'
+    }
+  }
+}

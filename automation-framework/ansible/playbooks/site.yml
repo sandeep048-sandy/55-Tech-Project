@@ -1,0 +1,21 @@
+---
+- hosts: web
+  become: yes
+  roles:
+    - web
+  vars:
+    domain: "{{ domain | default(ansible_host) }}"
+
+- hosts: app
+  become: yes
+  roles:
+    - app
+  vars:
+    app_image: "your-app-image:latest"
+
+- hosts: db
+  become: yes
+  roles:
+    - db
+  vars:
+    db_root_password: "securepassword"

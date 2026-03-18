@@ -1,0 +1,20 @@
+- name: Install Docker
+  apt:
+    name: docker.io
+    state: present
+    update_cache: yes
+
+- name: Ensure Docker is running
+  service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Deploy application container
+  docker_container:
+    name: app
+    image: "{{ app_image }}"
+    state: started
+    restart_policy: always
+    ports:
+      - "8080:8080"

@@ -1,0 +1,21 @@
+- name: Install MySQL
+  apt:
+    name: mysql-server
+    state: present
+    update_cache: yes
+
+- name: Start MySQL service
+  service:
+    name: mysql
+    state: started
+    enabled: yes
+
+- name: Secure MySQL installation
+  mysql_secure_installation:
+    login_password: "{{ db_root_password }}"
+    user: root
+    state: present
+    validate_password_policy: "LOW"
+    remove_anonymous_users: yes
+    remove_test_db: yes
+    change_root_password: yes
