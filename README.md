@@ -1,8 +1,8 @@
-# 3-Tier DevSecOps Project
+# 3-Tier Project
 
 This repository contains a simple Node.js Backend and a React Frontend used for a user management demo application. Follow the steps below to get the project running locally.
 
-## Setup
+## Setups to run it locally
 
 1. Install Node.js (version 18 or later is recommended).
 2. Install dependencies for both the API and client:
@@ -30,6 +30,7 @@ This repository contains a simple Node.js Backend and a React Frontend used for 
 
 The Frontend now displays an animated banner welcoming you to **DevOps Shack**.
 
+=========================================================================================================================================================================================================================
 ## Terraform remote state (S3 backend)
 
 The Terraform config under `automation-framework/terraform` is now configured to store its state remotely in an S3 bucket (see `backend.tf`). To use it:
@@ -44,6 +45,7 @@ The Terraform config under `automation-framework/terraform` is now configured to
 
 If you prefer not to hardcode values in `backend.tf`, you can also pass them via `terraform init -backend-config`.
 
+=====================================================================================================================================================================================================================
 ## Jenkins: SSH key for Ansible targets
 
 If you run the pipeline from Jenkins, the Ansible stage uses an SSH key stored in Jenkins credentials to connect to the target hosts.
@@ -52,9 +54,5 @@ If you run the pipeline from Jenkins, the Ansible stage uses an SSH key stored i
    - **ID:** `ansible-ssh-key`
    - **Username:** the remote SSH user (e.g., `ec2-user`/`ubuntu`)
    - **Private key:** your SSH private key
-
-2. Ensure the target hosts have the matching public key in `~/.ssh/authorized_keys` for that user.
-
-3. Ensure the Jenkins host can reach the targets via SSH (security group / firewall rules allow port 22 from the Jenkins host).
 
 The pipeline already invokes Ansible using this credential (see `automation-framework/Jenkinsfile_CICD`).
