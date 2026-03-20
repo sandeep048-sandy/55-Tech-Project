@@ -19,3 +19,26 @@
     remove_anonymous_users: yes
     remove_test_db: yes
     change_root_password: yes
+
+- name: Copy app init SQL to managed host
+  copy:
+    src: init.sql
+    dest: /tmp/init.sql
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Ensure crud_app database exists
+  community.mysql.mysql_db:
+    name: crud_app
+    state: present
+    login_user: root
+    login_password: "{{ db_root_password }}"
+
+- name: Import initial DB schema from SQL file
+  community.mysql.mysql_db:
+    name: crud_app
+    state: import
+    target: /tmp/init.sql
+    login_user: root
+    login_password: "{{ db_root_password }}"
